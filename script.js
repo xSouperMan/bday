@@ -1,8 +1,8 @@
 function submit(str) {
-    const code = ""
+    const code = "xlccpbfd"
     if(str != null) {
-        if(str == code) {
-            alert("yay")
+        if(strtoLowerCase() == code) {
+            window.location.href = "fortune-wheel.html"
         } else {
             //falscher code
         }

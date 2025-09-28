@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fortune Wheel</title>
+<style>
+  :root { --size: 360px; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#111; color:#eee; font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+  .wrap { text-align:center; padding:20px }
+    .pointer {
+    width:0; height:0; margin:auto;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-top:22px solid #ffd166;   /* statt border-bottom */
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.6));
+    }
+
+  .wheel {
+    width: var(--size); height: var(--size); border-radius:50%;
+    margin:12px auto 16px; position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5), inset 0 0 0 6px rgba(255,255,255,.06);
+    transition: transform 3s cubic-bezier(.15,.9,.15,1);
+    background:#333; /* JS setzt den conic-gradient */
+  }
+  .hub {
+    position:absolute; inset:0; margin:auto; width:110px; height:110px; border-radius:50%;
+    display:grid; place-items:center; z-index:2; pointer-events:none;
+    background: radial-gradient(circle at 30% 30%, #222a3a, #121826);
+    border: 2px solid rgba(255,255,255,.08); color:#9fb6ff; font-weight:700; letter-spacing:.4px;
+  }
+  button {
+    appearance:none; border:1px solid rgba(255,255,255,.12);
+    background:#1b2333; color:#fff; padding:10px 16px; border-radius:10px;
+    font-weight:700; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.35);
+  }
+  button:disabled { opacity:.6; cursor:not-allowed; }
+  .msg { margin-top:12px; color:#c7ffd1; font-weight:700; display:none; }
+  .addr { color:#a9b3c5; margin-top:4px; display:none; }
+  .legend { margin-top:14px; display:flex; gap:18px; justify-content:center; align-items:center; color:#cfd6e6; font-size:14px; }
+  .key { display:flex; align-items:center; gap:8px; }
+  .swatch { width:16px; height:16px; border-radius:3px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pointer" aria-hidden="true"></div>
+
+  <div id="wheel" class="wheel">
+    <div class="hub">SPIN</div>
+  </div>
+
+  <button id="spinBtn">Drehen</button>
+  <div id="msg" class="msg">🎉 Glückwunsch! Ihr habt GEWONNEN!</div>
+  <div id="addr" class="addr">Euren Gewinn könnt ihr in der <b>Poststraße</b> abholen.</div>
+
+  <div class="legend" aria-hidden="true">
+    <div class="key"><div class="swatch" id="winSwatch"></div> GEWINN</div>
+    <div class="key"><div class="swatch" id="loseSwatch"></div> NIETE</div>
+  </div>
+</div>
+
+<script>
+/* === Einstellungen === */
+const SEGMENTS   = 12;           // Anzahl Felder
+const WIN_INDEX  = 3;            // 0-basiert, im Uhrzeigersinn, Start bei 0° (rechts)
+const FULL_SPINS = 5;            // optische Vollumdrehungen
+const JITTER_DEG = 6;            // kleiner Zufallsversatz (bleibt im Ziel-Segment)
+const WIN_COLOR  = '#4ea1ff';    // Farbe des Gewinn-Felds
+const GREY_A     = '#2b2f3a';    // graue Niete-Felder (abwechselnd)
+const GREY_B     = '#3a3f4b';
+
+const ADDRESS_TEXT = 'Euren Gewinn könnt ihr in der <b>Poststraße 49</b> abholen.';
+
+/* === DOM === */
+const wheel = document.getElementById('wheel');
+const btn   = document.getElementById('spinBtn');
+const msg   = document.getElementById('msg');
+const addr  = document.getElementById('addr');
+
+document.getElementById('winSwatch').style.background = WIN_COLOR;
+document.getElementById('loseSwatch').style.background = `linear-gradient(90deg, ${GREY_A}, ${GREY_B})`;
+addr.innerHTML = ADDRESS_TEXT;
+
+const per = 360 / SEGMENTS;
+
+/* === Radgrafik: ausrichten mit 'from 90deg' (=> 0° = rechts) === */
+let stops = [];
+for (let i=0;i<SEGMENTS;i++){
+  const start = i*per, end = (i+1)*per;
+  const col = (i === WIN_INDEX) ? WIN_COLOR : (i % 2 ? GREY_A : GREY_B);
+  stops.push(`${col} ${start}deg ${end}deg`);
+}
+wheel.style.background = `conic-gradient(from 90deg, ${stops.join(',')})`;
+
+/* === Zielrotation: Pointer oben = 270° === */
+const theta = WIN_INDEX * per + per/2;                  // Mitte des Gewinnsegments (0°=rechts)
+const baseRotation = 270 - theta + FULL_SPINS*360;      // auf 270° bringen, plus Vollspins
+const jitter = Math.max(0, Math.min(JITTER_DEG, per/2 - 2)) * (Math.random()*2 - 1);
+const finalRotation = baseRotation + jitter;
+
+/* === Einmal drehen === */
+let spun = false;
+
+function revealMessage(){
+  msg.style.display  = 'block';
+  addr.style.display = 'block';
+}
+
+btn.addEventListener('click', () => {
+  if (spun) return;
+  spun = true;
+  btn.disabled = true;
+  // Animation starten
+  wheel.getBoundingClientRect();
+  wheel.style.transform = `rotate(${finalRotation}deg)`;
+});
+
+// Zeige Nachricht nach der Rotation (robust per Event + Fallback)
+wheel.addEventListener('transitionend', (e) => {
+  if (e.propertyName === 'transform' && spun) revealMessage();
+});
+setTimeout(() => { if (spun) revealMessage(); }, 3200);
+
+// Optional: Hub klickbar
+wheel.addEventListener('click', () => btn.click());
+</script>
+</body>
+</html>

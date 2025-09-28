@@ -1,10 +1,17 @@
+const code = "xlccpbfd"
+var versuche = 3;
+
 function submit(str) {
-    const code = "xlccpbfd"
+    if(versuche <= 0) {return;}
     if(str != null) {
         if(str.toLowerCase() == code) {
-            window.location.href = "fortune-wheel.html"
+            window.location.href = "result.html"
         } else {
-            //falscher code
+                if(versuche > 0 ) {versuche--;}
+            if(versuche == 0) {
+                document.getElementById("losernachricht").style.visibility = "visible";
+            } 
+            document.getElementById("versucheleft").innerHTML = versuche;
         }
     }
 }

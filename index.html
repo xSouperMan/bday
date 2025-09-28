@@ -55,6 +55,18 @@
             cursor: pointer;
         }
 
+        #losernachricht {
+            visibility: hidden;
+        }
+        #versuche {
+            font-size: 30px;
+            text-shadow: 0px 0px 15px black;
+        }
+        #versucheleft {
+            font-size: 30px;
+            text-shadow: 0px 0px 15px black;
+        }
+
         @media (max-width: 600px) {
             #h1div {
                 width: 90%;
@@ -80,7 +92,7 @@
 </head>
 <body>
     <div id="h1div">
-        <p id="heading1">Enter Code:</p>
+        <p id="heading1">Code Eingeben:</p>
         <div id="inputdiv">
             <input type="text" id="input1">
             <div id="submit1" onclick="submit(document.getElementById('input1').value)">
@@ -89,5 +101,10 @@
         </div>
         <p style="padding-top: 0px;">(Länge: 8) </p>
     </div>
+    <div>
+        <p id="versuche">Versuche:</p>
+        <p id="versucheleft">3</p>
+    </div>
+    <p id="losernachricht">Leider habt ihr all eure Versuche aufgebraucht. <br> (Ein Vögelchen zwitschert, Seite neu laden hilft)</p>
 </body>
 </html>
